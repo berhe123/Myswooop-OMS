@@ -55,7 +55,7 @@ app.get('/api/debug/data', async (req, res) => {
 app.get('/api/debug/reinit-admin', async (req, res) => {
   try {
     const bcrypt = require('bcryptjs');
-    const hashedPassword = bcrypt.hashSync('admin123', 10);
+    const hashedPassword = bcrypt.hashSync('admin', 10);
     
     // Delete existing admin if any
     await db.run('DELETE FROM users WHERE username = ?', ['admin']);
@@ -71,7 +71,7 @@ app.get('/api/debug/reinit-admin', async (req, res) => {
       message: 'Admin user reinitialized',
       credentials: {
         username: 'admin',
-        password: 'admin123'
+        password: 'admin'
       }
     });
   } catch (error) {

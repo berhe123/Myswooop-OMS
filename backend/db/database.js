@@ -80,7 +80,7 @@ class Database {
       `);
 
       // Create admin user
-      const hashedPassword = bcrypt.hashSync('admin123', 10);
+      const hashedPassword = bcrypt.hashSync('admin', 10);
       this.db.run(`
         INSERT OR IGNORE INTO users (username, password, email, role)
         VALUES ('admin', ?, 'admin@myswooop.com', 'admin')
