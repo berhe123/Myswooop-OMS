@@ -23,7 +23,11 @@ function Login({ onLogin }) {
       localStorage.setItem('user', JSON.stringify(response.data.user));
       onLogin(response.data.user);
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed');
+      console.error('Login error:', err);
+      console.error('API URL:', import.meta.env.VITE_API_URL);
+      console.error('Full error:', err.response);
+      const errorMsg = err.response?.data?.error || err.message || 'Login failed';
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
