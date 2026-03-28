@@ -51,6 +51,35 @@ app.get('/api/debug/data', async (req, res) => {
   }
 });
 
+// Reinitialize admin user endpoint
+app.post('/api/debug/reinit-admin', async (req, res) => {
+  try {
+    const bcrypt = require('bcryptjs');
+    const hashedPassword = bcrypt.hashSync('admin123', 10);
+    
+    // Delete existing admin if any
+    await db.run('DELETE FROM users WHERE username = ?', ['admin']);
+    
+    // Create fresh admin user
+    const result = await db.run(
+      'INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)',
+      ['admin', hashedPassword, 'admin@myswooop.com', 'admin']
+    );
+    
+    res.json({ 
+      success: true, 
+      message: 'Admin user reinitialized',
+      credentials: {
+        username: 'admin',
+        password: 'admin123'
+      }
+    });
+  } catch (error) {
+    console.error('Reinit admin error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
