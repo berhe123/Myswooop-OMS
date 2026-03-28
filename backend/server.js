@@ -52,7 +52,7 @@ app.get('/api/debug/data', async (req, res) => {
 });
 
 // Reinitialize admin user endpoint
-app.post('/api/debug/reinit-admin', async (req, res) => {
+app.get('/api/debug/reinit-admin', async (req, res) => {
   try {
     const bcrypt = require('bcryptjs');
     const hashedPassword = bcrypt.hashSync('admin123', 10);
