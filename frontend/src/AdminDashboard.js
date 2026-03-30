@@ -36,8 +36,13 @@ function AdminDashboard({ user, onLogout }) {
     }
   }, [token]);
 
+  // Load employees once on component mount
   useEffect(() => {
     fetchEmployees();
+  }, []);
+
+  // Load registrations only when date filter changes
+  useEffect(() => {
     fetchRegistrations();
   }, [registrationFilter]);
 
