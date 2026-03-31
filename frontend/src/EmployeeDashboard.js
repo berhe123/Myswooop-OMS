@@ -234,7 +234,7 @@ function EmployeeDashboard({ user, onLogout }) {
             <div className="task-info">
               <h3>🏢 Department Information</h3>
               <div className="info-box">
-                <h4>OA (Order Administration)</h4>
+                <h4>OA</h4>
                 <p>Responsible for managing orders and administrative tasks.</p>
               </div>
               <div className="info-box">

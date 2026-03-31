@@ -514,7 +514,7 @@ function AdminDashboard({ user, onLogout }) {
                       className="btn-task"
                       onClick={() => handleAllocateTask('OA')}
                     >
-                      OA (Order Administration)
+                      OA
                     </button>
                     <button
                       className="btn-task"
