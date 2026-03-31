@@ -26,9 +26,7 @@ function EmployeeDashboard({ user, onLogout }) {
 
   useEffect(() => {
     fetchAllocations();
-    // Refresh allocations every 10 seconds to get latest admin assignments
-    const interval = setInterval(fetchAllocations, 10000);
-    return () => clearInterval(interval);
+    // NOTE: Removed auto-refresh interval - causing data refresh issues
   }, []);
 
   const fetchAllocations = async () => {

@@ -66,25 +66,36 @@ router.post('/', authenticateToken, authorizeAdmin, async (req, res) => {
     const dateToUse = allocatedDate ? new Date(allocatedDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
     console.log('Allocation date:', dateToUse);
     
-    await db.run(`
-      DELETE FROM allocations 
-      WHERE employeeId = ? AND date(allocatedDate) = ?
-    `, [employeeId, dateToUse]);
+    // FIXED: Only delete if updating the SAME task type for this employee on this date
+    // This prevents losing other allocations for the same day
+    const existing = await db.get(`
+      SELECT id FROM allocations 
+      WHERE employeeId = ? AND date(allocatedDate) = ? AND taskType = ?
+    `, [employeeId, dateToUse, taskType]);
 
-    // Create new allocation with explicit date
-    const result = await db.run(
-      'INSERT INTO allocations (employeeId, taskType, allocatedDate) VALUES (?, ?, ?)',
-      [employeeId, taskType, dateToUse]
-    );
+    if (existing) {
+      console.log('Updating existing allocation:', existing.id);
+      await db.run(
+        'UPDATE allocations SET allocatedDate = ? WHERE id = ?',
+        [dateToUse, existing.id]
+      );
+    } else {
+      console.log('Creating new allocation (no existing one for this task type)');
+      // Create new allocation with explicit date - don't delete other task types!
+      await db.run(
+        'INSERT INTO allocations (employeeId, taskType, allocatedDate) VALUES (?, ?, ?)',
+        [employeeId, taskType, dateToUse]
+      );
+    }
 
-    console.log('New allocation created with id:', result.id);
-
+    // Get the allocation after create/update
     const allocation = await db.get(`
       SELECT a.id, a.taskType, a.allocatedDate, e.name
       FROM allocations a
       JOIN employees e ON a.employeeId = e.id
-      WHERE a.id = ?
-    `, [result.id]);
+      WHERE a.employeeId = ? AND a.taskType = ? AND date(a.allocatedDate) = ?
+      ORDER BY a.id DESC LIMIT 1
+    `, [employeeId, taskType, dateToUse]);
 
     console.log('Allocation details:', allocation);
     res.json(allocation);
