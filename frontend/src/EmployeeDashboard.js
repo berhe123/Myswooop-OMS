@@ -26,28 +26,15 @@ function EmployeeDashboard({ user, onLogout }) {
 
   useEffect(() => {
     fetchAllocations();
-    // NOTE: Removed auto-refresh interval - causing data refresh issues
   }, []);
 
   const fetchAllocations = async () => {
     try {
       setLoading(true);
-      console.log('📥 Fetching allocations for user:', user?.username);
       const response = await axiosInstance.get('/allocations');
-      console.log('✅ Allocations fetched successfully:', response.data);
-      console.log('📊 Total allocations:', response.data.length);
-      
-      if (response.data && response.data.length > 0) {
-        response.data.forEach(a => {
-          console.log(`  - Task: ${a.taskType}, Date: ${a.allocatedDate}, Employee: ${a.name}`);
-        });
-      } else {
-        console.log('ℹ️ No allocations found for this employee');
-      }
-      
       setAllocations(response.data || []);
     } catch (error) {
-      console.error('❌ Error fetching allocations:', error.response?.data || error.message);
+      console.error('Error fetching allocations:', error);
     } finally {
       setLoading(false);
     }
@@ -55,30 +42,10 @@ function EmployeeDashboard({ user, onLogout }) {
 
   const getTodayAllocations = () => {
     const today = new Date().toISOString().split('T')[0];
-    console.log('🔍 Filtering allocations for today:', today);
-    console.log('📦 All allocations available:', allocations);
-    
-    const todayAllocations = allocations.filter(a => {
-      if (!a.allocatedDate) {
-        console.warn('⚠️ Allocation missing allocatedDate:', a);
-        return false;
-      }
-      
-      // Extract just the date part (YYYY-MM-DD) from allocatedDate
+    return allocations.filter(a => {
       const allocationDate = a.allocatedDate.substring(0, 10);
-      const matches = allocationDate === today;
-      
-      if (!matches) {
-        console.log(`   ℹ️ Allocation ${a.id}: ${allocationDate} (not today, today is ${today})`);
-      } else {
-        console.log(`   ✅ Allocation ${a.id}: ${a.taskType} - ${allocationDate} (matches today!)`);
-      }
-      
-      return matches;
+      return allocationDate === today;
     });
-    
-    console.log(`📊 Found ${todayAllocations.length} allocations for today`);
-    return todayAllocations;
   };
 
   const handleProductDataChange = (category, field, value) => {
@@ -209,27 +176,7 @@ function EmployeeDashboard({ user, onLogout }) {
         {activeMainTab === 'tasks' && (
           <>
             <div className="dashboard-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <h2>📋 Your Allocated Tasks Today</h2>
-                <button 
-                  onClick={fetchAllocations}
-                  disabled={loading}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#4CAF50',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    opacity: loading ? 0.6 : 1
-                  }}
-                  title="Click to refresh and get latest allocated tasks from admin"
-                >
-                  🔄 {loading ? 'Refreshing...' : 'Refresh'}
-                </button>
-              </div>
+              <h2>📋 Your Allocated Tasks Today</h2>
               {loading ? (
                 <p>Loading tasks...</p>
               ) : todayTasks.length === 0 ? (
