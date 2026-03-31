@@ -25,6 +25,28 @@ router.get('/debug/all-allocations', authenticateToken, authorizeAdmin, async (r
   }
 });
 
+// Get allocations for a specific date (admin only)
+router.get('/date/:date', authenticateToken, authorizeAdmin, async (req, res) => {
+  try {
+    const { date } = req.params;
+    console.log('Fetching allocations for date:', date);
+    
+    const allocations = await db.all(`
+      SELECT a.id, a.employeeId, a.taskType, a.allocatedDate, e.name
+      FROM allocations a
+      JOIN employees e ON a.employeeId = e.id
+      WHERE date(a.allocatedDate) = ?
+      ORDER BY a.taskType, e.name
+    `, [date]);
+    
+    console.log(`Found ${allocations ? allocations.length : 0} allocations for date ${date}`);
+    res.json(allocations || []);
+  } catch (error) {
+    console.error('Error fetching allocations by date:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all allocations for current user
 router.get('/', authenticateToken, async (req, res) => {
   try {
