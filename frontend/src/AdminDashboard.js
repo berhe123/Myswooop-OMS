@@ -45,7 +45,6 @@ function AdminDashboard({ user, onLogout }) {
   // Load employees and allocations ONCE on mount
   useEffect(() => {
     fetchEmployees();
-    fetchAllocations();
   }, []);
 
   // Load registrations ONLY when date filter changes (Track Products only)
@@ -64,22 +63,6 @@ function AdminDashboard({ user, onLogout }) {
       setEmployees(response.data);
     } catch (error) {
       console.error('Error fetching employees:', error);
-    }
-  };
-
-  const fetchAllocations = async () => {
-    try {
-      const authToken = localStorage.getItem('token');
-      if (!authToken) {
-        console.warn('No token available for fetchAllocations');
-        return;
-      }
-      const response = await axiosInstance.get(`/allocations/date/${registrationFilter}`);
-      console.log('Allocations fetched:', response.data);
-      setAllocations(response.data);
-    } catch (error) {
-      console.error('Error fetching allocations:', error);
-      setAllocations([]);
     }
   };
 
@@ -222,8 +205,6 @@ function AdminDashboard({ user, onLogout }) {
       });
       setAllocatingEmployee(null);
       alert(`Task "${taskType}" allocated to ${allocatingEmployee.name}`);
-      // Refresh allocations list to show the newly allocated task
-      fetchAllocations();
     } catch (error) {
       console.error('Error allocating task:', error);
       alert('Error: ' + (error.response?.data?.error || error.message));
@@ -498,34 +479,6 @@ function AdminDashboard({ user, onLogout }) {
         {activeTab === 'allocate' && (
           <div className="allocate-tasks">
             <h2>Allocate Tasks to Employees</h2>
-            
-            {/* Display already allocated tasks */}
-            <div className="allocations-display" style={{ marginBottom: '30px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '5px' }}>
-              <h3>✅ Tasks Allocated for Today</h3>
-              {allocations.length === 0 ? (
-                <p style={{ color: '#666' }}>No tasks allocated for today yet.</p>
-              ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: '#ddd', borderBottom: '2px solid #999' }}>
-                      <th style={{ padding: '10px', textAlign: 'left', borderRight: '1px solid #999' }}>Employee Name</th>
-                      <th style={{ padding: '10px', textAlign: 'left', borderRight: '1px solid #999' }}>Task Type</th>
-                      <th style={{ padding: '10px', textAlign: 'left' }}>Allocated Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allocations.map((alloc) => (
-                      <tr key={alloc.id} style={{ borderBottom: '1px solid #ddd' }}>
-                        <td style={{ padding: '10px', borderRight: '1px solid #ddd' }}>{alloc.name}</td>
-                        <td style={{ padding: '10px', borderRight: '1px solid #ddd', fontWeight: 'bold', color: '#2196F3' }}>{alloc.taskType}</td>
-                        <td style={{ padding: '10px' }}>{new Date(alloc.allocatedDate).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-            
             <div className="employees-list">
               {employees.length === 0 ? (
                 <p>No employees to allocate.</p>
