@@ -256,6 +256,7 @@ tbody tr:last-child {
   transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
 }
