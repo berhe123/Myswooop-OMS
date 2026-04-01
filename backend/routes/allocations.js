@@ -59,22 +59,22 @@ router.get('/employee/:employeeId', authenticateToken, async (req, res) => {
 // Create allocation (admin only)
 router.post('/', authenticateToken, authorizeAdmin, async (req, res) => {
   try {
-    const { employeeId, taskType } = req.body;
-    console.log('Creating allocation:', { employeeId, taskType });
+    const { employeeId, taskType, allocatedDate } = req.body;
+    console.log('Creating allocation:', { employeeId, taskType, allocatedDate });
 
-    // Delete previous allocation for this employee today
-    const today = new Date().toISOString().split('T')[0];
-    console.log('Today date:', today);
+    // Use provided date or default to today
+    const dateToUse = allocatedDate ? new Date(allocatedDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+    console.log('Allocation date:', dateToUse);
     
     await db.run(`
       DELETE FROM allocations 
       WHERE employeeId = ? AND date(allocatedDate) = ?
-    `, [employeeId, today]);
+    `, [employeeId, dateToUse]);
 
-    // Create new allocation
+    // Create new allocation with explicit date
     const result = await db.run(
-      'INSERT INTO allocations (employeeId, taskType) VALUES (?, ?)',
-      [employeeId, taskType]
+      'INSERT INTO allocations (employeeId, taskType, allocatedDate) VALUES (?, ?, ?)',
+      [employeeId, taskType, dateToUse]
     );
 
     console.log('New allocation created with id:', result.id);
