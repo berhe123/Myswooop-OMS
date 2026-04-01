@@ -5,6 +5,26 @@ const { authenticateToken, authorizeAdmin } = require('../middleware/auth');
 
 const db = new Database();
 
+// Get ALL allocations (admin debug endpoint)
+router.get('/debug/all-allocations', authenticateToken, authorizeAdmin, async (req, res) => {
+  try {
+    const allocations = await db.all(`
+      SELECT a.id, a.employeeId, a.taskType, a.allocatedDate, e.name, e.id as empId
+      FROM allocations a
+      JOIN employees e ON a.employeeId = e.id
+      ORDER BY a.allocatedDate DESC
+    `);
+    res.json({
+      count: allocations ? allocations.length : 0,
+      allocations: allocations || [],
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error fetching all allocations:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all allocations for current user
 router.get('/', authenticateToken, async (req, res) => {
   try {
@@ -62,43 +82,50 @@ router.post('/', authenticateToken, authorizeAdmin, async (req, res) => {
     const { employeeId, taskType, allocatedDate } = req.body;
     console.log('Creating allocation:', { employeeId, taskType, allocatedDate });
 
-    // Use provided date or default to today
-    const dateToUse = allocatedDate ? new Date(allocatedDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-    console.log('Allocation date:', dateToUse);
+    // Store full ISO datetime to ensure consistency
+    const fullDateTime = allocatedDate || new Date().toISOString();
+    const dateOnly = fullDateTime.split('T')[0]; // Extract date part YYYY-MM-DD
     
-    // FIXED: Only delete if updating the SAME task type for this employee on this date
-    // This prevents losing other allocations for the same day
+    console.log('Full datetime:', fullDateTime);
+    console.log('Date only:', dateOnly);
+    
+    // Check if allocation already exists for same employee, task type, and date
     const existing = await db.get(`
       SELECT id FROM allocations 
-      WHERE employeeId = ? AND date(allocatedDate) = ? AND taskType = ?
-    `, [employeeId, dateToUse, taskType]);
+      WHERE employeeId = ? AND taskType = ? AND date(allocatedDate) = ?
+    `, [employeeId, taskType, dateOnly]);
 
     if (existing) {
-      console.log('Updating existing allocation:', existing.id);
+      console.log('Allocation already exists for this employee/task/date. Updating timestamp...');
       await db.run(
         'UPDATE allocations SET allocatedDate = ? WHERE id = ?',
-        [dateToUse, existing.id]
+        [fullDateTime, existing.id]
       );
     } else {
-      console.log('Creating new allocation (no existing one for this task type)');
-      // Create new allocation with explicit date - don't delete other task types!
+      console.log('Creating new allocation (fresh entry)');
+      // Create new allocation - store full ISO datetime
       await db.run(
         'INSERT INTO allocations (employeeId, taskType, allocatedDate) VALUES (?, ?, ?)',
-        [employeeId, taskType, dateToUse]
+        [employeeId, taskType, fullDateTime]
       );
     }
 
-    // Get the allocation after create/update
+    // VERIFY the allocation was actually created/updated
     const allocation = await db.get(`
       SELECT a.id, a.taskType, a.allocatedDate, e.name
       FROM allocations a
       JOIN employees e ON a.employeeId = e.id
       WHERE a.employeeId = ? AND a.taskType = ? AND date(a.allocatedDate) = ?
       ORDER BY a.id DESC LIMIT 1
-    `, [employeeId, taskType, dateToUse]);
+    `, [employeeId, taskType, dateOnly]);
 
-    console.log('Allocation details:', allocation);
-    res.json(allocation);
+    if (allocation) {
+      console.log('✅ Allocation verified in database:', allocation);
+      res.json(allocation);
+    } else {
+      console.error('❌ ERROR: Allocation was not found after creation!');
+      res.status(500).json({ error: 'Allocation creation failed - not found in database' });
+    }
   } catch (error) {
     console.error('Error creating allocation:', error);
     res.status(500).json({ error: error.message });

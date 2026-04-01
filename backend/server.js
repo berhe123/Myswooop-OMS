@@ -32,17 +32,15 @@ app.get('/api/health', (req, res) => {
 // Debug endpoint - view all database data
 app.get('/api/debug/data', async (req, res) => {
   try {
-    const Database = require('./db/database');
-    const debugDb = new Database();
-    
-    const users = await debugDb.all('SELECT id, username, role, email FROM users', []);
-    const employees = await debugDb.all('SELECT id, userId, name, email, phone FROM employees', []);
-    const allocations = await debugDb.all('SELECT id, employeeId, taskType, allocatedDate FROM allocations', []);
+    const allocations = await db.all('SELECT id, employeeId, taskType, allocatedDate FROM allocations', []);
+    const employees = await db.all('SELECT id, userId, name FROM employees', []);
+    const registrations = await db.all('SELECT id, userId, date, category FROM daily_registrations ORDER BY date DESC LIMIT 10', []);
     
     res.json({
-      users: users || [],
-      employees: employees || [],
       allocations: allocations || [],
+      employees: employees || [],
+      registrations: registrations || [],
+      status: 'Database data retrieved',
       timestamp: new Date().toISOString()
     });
   } catch (error) {
