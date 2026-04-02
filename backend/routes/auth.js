@@ -1,11 +1,11 @@
 const express = require('express');
-const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const Database = require('../db/database');
 const { authenticateToken } = require('../middleware/auth');
 
-const db = new Database();
+// IMPORTANT: This function receives the database instance from server.js
+module.exports = function(db) {
+  const router = express.Router();
 
 // Login
 router.post('/login', async (req, res) => {
@@ -83,4 +83,5 @@ router.post('/change-password', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+  return router;
+};

@@ -1,10 +1,10 @@
 const express = require('express');
-const router = express.Router();
 const bcrypt = require('bcryptjs');
-const Database = require('../db/database');
 const { authenticateToken, authorizeAdmin } = require('../middleware/auth');
 
-const db = new Database();
+// IMPORTANT: This function receives the database instance from server.js
+module.exports = function(db) {
+  const router = express.Router();
 
 // Get all employees
 router.get('/', authenticateToken, async (req, res) => {
@@ -122,4 +122,5 @@ router.delete('/:id', authenticateToken, authorizeAdmin, async (req, res) => {
   }
 });
 
-module.exports = router;
+  return router;
+};

@@ -21,11 +21,11 @@ app.use(express.json());
 // Initialize database - MUST wait for this to complete before starting server
 const db = new Database();
 
-// Routes
-const authRoutes = require('./routes/auth');
-const employeeRoutes = require('./routes/employees');
-const allocationRoutes = require('./routes/allocations');
-const productRoutes = require('./routes/products');
+// Routes - Pass the database instance to each route
+const authRoutes = require('./routes/auth')(db);
+const employeeRoutes = require('./routes/employees')(db);
+const allocationRoutes = require('./routes/allocations')(db);
+const productRoutes = require('./routes/products')(db);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);

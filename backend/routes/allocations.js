@@ -1,9 +1,9 @@
 const express = require('express');
-const router = express.Router();
-const Database = require('../db/database');
 const { authenticateToken, authorizeAdmin } = require('../middleware/auth');
 
-const db = new Database();
+// IMPORTANT: This function receives the database instance from server.js
+module.exports = function(db) {
+  const router = express.Router();
 
 // Get ALL allocations (admin debug endpoint)
 router.get('/debug/all-allocations', authenticateToken, authorizeAdmin, async (req, res) => {
@@ -164,4 +164,5 @@ router.delete('/:id', authenticateToken, authorizeAdmin, async (req, res) => {
   }
 });
 
-module.exports = router;
+  return router;
+};

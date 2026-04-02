@@ -1,9 +1,9 @@
 const express = require('express');
-const router = express.Router();
-const Database = require('../db/database');
 const { authenticateToken, authorizeAdmin } = require('../middleware/auth');
 
-const db = new Database();
+// IMPORTANT: This function receives the database instance from server.js
+module.exports = function(db) {
+  const router = express.Router();
 
 // Get daily products stats
 router.get('/daily/:date', authenticateToken, async (req, res) => {
@@ -159,4 +159,5 @@ router.get('/registrations/date/:date', authenticateToken, authorizeAdmin, async
   }
 });
 
-module.exports = router;
+  return router;
+};
