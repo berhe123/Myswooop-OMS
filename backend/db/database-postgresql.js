@@ -104,12 +104,26 @@ class Database {
     }
   }
 
+  convertParams(sql) {
+    // Convert SQLite parameter style (?) to PostgreSQL ($1, $2, etc)
+    // Also quote camelCase column names for PostgreSQL case-sensitivity
+    let pgSql = sql;
+    let paramIndex = 1;
+    
+    // Replace ? with $1, $2, etc
+    pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+    
+    // Quote camelCase identifiers: userId -> "userId", employeeId -> "employeeId", etc
+    // Only quote if not already quoted
+    pgSql = pgSql.replace(/\b([a-z][a-zA-Z]*[A-Z][a-zA-Z]*)\b(?!")/g, '"$1"');
+    
+    return pgSql;
+  }
+
   run(sql, params = []) {
     return new Promise((resolve, reject) => {
-      // Convert SQLite parameter style (?) to PostgreSQL ($1, $2, etc)
-      let pgSql = sql;
-      let paramIndex = 1;
-      pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+      // Convert SQLite syntax to PostgreSQL
+      let pgSql = this.convertParams(sql);
 
       this.pool.query(pgSql, params, (err, result) => {
         if (err) {
@@ -127,10 +141,8 @@ class Database {
 
   get(sql, params = []) {
     return new Promise((resolve, reject) => {
-      // Convert SQLite parameter style (?) to PostgreSQL ($1, $2, etc)
-      let pgSql = sql;
-      let paramIndex = 1;
-      pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+      // Convert SQLite syntax to PostgreSQL
+      let pgSql = this.convertParams(sql);
 
       this.pool.query(pgSql, params, (err, result) => {
         if (err) {
@@ -145,10 +157,8 @@ class Database {
 
   all(sql, params = []) {
     return new Promise((resolve, reject) => {
-      // Convert SQLite parameter style (?) to PostgreSQL ($1, $2, etc)
-      let pgSql = sql;
-      let paramIndex = 1;
-      pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+      // Convert SQLite syntax to PostgreSQL
+      let pgSql = this.convertParams(sql);
 
       this.pool.query(pgSql, params, (err, result) => {
         if (err) {
