@@ -125,6 +125,11 @@ class Database {
       // Convert SQLite syntax to PostgreSQL
       let pgSql = this.convertParams(sql);
 
+      // For INSERT statements, add RETURNING id to get the inserted ID back
+      if (pgSql.toUpperCase().includes('INSERT') && !pgSql.toUpperCase().includes('RETURNING')) {
+        pgSql += ' RETURNING id';
+      }
+
       this.pool.query(pgSql, params, (err, result) => {
         if (err) {
           console.error('Database error:', err);
