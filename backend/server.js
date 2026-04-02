@@ -1,7 +1,16 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const Database = require('./db/database');
+
+// Use PostgreSQL in production (Render), SQLite for local development
+let Database;
+if (process.env.DATABASE_URL || process.env.NODE_ENV === 'production') {
+  console.log('🔗 Using PostgreSQL database');
+  Database = require('./db/database-postgresql');
+} else {
+  console.log('📁 Using SQLite database (local development)');
+  Database = require('./db/database');
+}
 
 const app = express();
 
