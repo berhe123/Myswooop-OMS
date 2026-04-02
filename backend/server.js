@@ -18,9 +18,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Initialize database
+// Initialize database - MUST wait for this to complete before starting server
 const db = new Database();
-db.init();
 
 // Routes
 const authRoutes = require('./routes/auth');
@@ -88,6 +87,16 @@ app.get('/api/debug/reinit-admin', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+// Async startup - wait for database initialization before starting server
+(async () => {
+  try {
+    await db.init();
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+})();
