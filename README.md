@@ -137,11 +137,6 @@ The frontend will open automatically at `http://localhost:3000`
 
 ## Usage Guide
 
-### For Admins
-
-1. **Login**:
-   - Username: `admin`
-   - Password: `admin123`
 
 2. **Manage Employees**:
    - Click "Manage Employees" tab
@@ -186,9 +181,6 @@ The frontend will open automatically at `http://localhost:3000`
 
 ## Default Credentials
 
-**Admin Account**:
-- Username: `admin`
-- Password: `admin123`
 
 Use the admin account to create employee accounts.
 
